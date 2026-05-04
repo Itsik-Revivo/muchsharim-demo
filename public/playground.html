@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מוכשרים – API Playground</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;font-size:14px;background:#f4f6f9;color:#1a1a2e;direction:rtl}
+    .topbar{background:#1B3A6B;color:white;padding:14px 24px;display:flex;align-items:center;gap:12px}
+    .topbar h1{font-size:20px;font-weight:600}
+    .topbar span{font-size:12px;opacity:0.7;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:10px}
+    .layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 52px)}
+    .sidebar{background:#fff;border-left:1px solid #e0e0e0;overflow-y:auto;padding:12px 0}
+    .sidebar-section{padding:8px 16px 4px;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+    .endpoint-btn{display:block;width:100%;text-align:right;padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:12px;color:#333;border-right:3px solid transparent;transition:all 0.15s}
+    .endpoint-btn:hover{background:#f0f4ff;border-right-color:#2E75B6}
+    .endpoint-btn.active{background:#e8f0fb;border-right-color:#1B3A6B;font-weight:600}
+    .method{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;margin-left:6px;min-width:36px;text-align:center}
+    .GET{background:#EAF3DE;color:#3B6D11}.POST{background:#E6F1FB;color:#185FA5}
+    .PUT{background:#FAEEDA;color:#854F0B}.DELETE{background:#FCEBEB;color:#A32D2D}
+    .main{padding:20px;overflow-y:auto}
+    .card{background:#fff;border-radius:10px;padding:18px;margin-bottom:14px;border:1px solid #e8e8e8}
+    .card h2{font-size:14px;font-weight:600;margin-bottom:12px;color:#1B3A6B}
+    .user-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .user-btn{padding:5px 12px;border:1px solid #ddd;border-radius:16px;cursor:pointer;font-size:12px;background:#fff;transition:all 0.15s}
+    .user-btn:hover{border-color:#2E75B6;color:#2E75B6}
+    .user-btn.active{background:#1B3A6B;color:#fff;border-color:#1B3A6B}
+    .token-box{padding:8px 10px;background:#f8f8f8;border-radius:6px;font-size:11px;font-family:monospace;word-break:break-all;color:#555;max-height:52px;overflow:hidden;border:1px solid #e0e0e0;margin-top:8px}
+    .url-bar{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    .method-badge{padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap}
+    .url-bar input{flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:monospace}
+    .body-label{font-size:12px;font-weight:600;color:#555;margin-bottom:4px}
+    textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:monospace;resize:vertical;min-height:80px;background:#fafafa}
+    .send-btn{padding:8px 18px;background:#1B3A6B;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+    .send-btn:hover{background:#2E75B6}
+    .send-btn:disabled{opacity:0.5;cursor:not-allowed}
+    .status-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .status-badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+    .response-box{background:#1a1a2e;border-radius:8px;padding:14px;font-family:monospace;font-size:12px;max-height:340px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;min-height:50px}
+    .info-box{background:#e8f0fb;border:1px solid #b5d4f4;border-radius:8px;padding:10px;font-size:12px;color:#185FA5;margin-bottom:10px;line-height:1.6}
+    .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+    .demo-user{background:#f8f9fc;border:1px solid #e0e0e0;border-radius:6px;padding:8px 10px;font-size:11px}
+    .demo-user strong{display:block;margin-bottom:1px;font-size:12px}
+    .demo-user code{color:#185FA5}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <h1>מוכשרים</h1>
+  <span>API Playground</span>
+  <span style="margin-right:auto;font-size:11px;opacity:0.6">Demo · SQLite</span>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">Auth</div>
+    <button class="endpoint-btn active" onclick="load('login')"><span class="method POST">POST</span>/api/auth/login</button>
+    <div class="sidebar-section">עובד</div>
+    <button class="endpoint-btn" onclick="load('getMe')"><span class="method GET">GET</span>/employees/me</button>
+    <button class="endpoint-btn" onclick="load('getMyProjects')"><span class="method GET">GET</span>/employees/me/projects</button>
+    <button class="endpoint-btn" onclick="load('createProject')"><span class="method POST">POST</span>/employees/me/projects</button>
+    <button class="endpoint-btn" onclick="load('deleteProject')"><span class="method DELETE">DEL</span>/employees/me/projects/:id</button>
+    <div class="sidebar-section">פרויקטי וקסמן</div>
+    <button class="endpoint-btn" onclick="load('listWaxman')"><span class="method GET">GET</span>/waxman-projects</button>
+    <button class="endpoint-btn" onclick="load('getWaxman')"><span class="method GET">GET</span>/waxman-projects/WX-001</button>
+    <div class="sidebar-section">Admin בלבד</div>
+    <button class="endpoint-btn" onclick="load('stats')"><span class="method GET">GET</span>/admin/stats</button>
+    <button class="endpoint-btn" onclick="load('listEmps')"><span class="method GET">GET</span>/admin/employees</button>
+    <button class="endpoint-btn" onclick="load('filterEmps')"><span class="method GET">GET</span>/admin/employees?domain=תשתיות</button>
+    <button class="endpoint-btn" onclick="load('getEmp')"><span class="method GET">GET</span>/admin/employees/1</button>
+    <button class="endpoint-btn" onclick="load('sendForms')"><span class="method POST">POST</span>/admin/forms/send</button>
+    <button class="endpoint-btn" onclick="load('export')"><span class="method GET">GET</span>/admin/export (xlsx)</button>
+    <div class="sidebar-section">Utils</div>
+    <button class="endpoint-btn" onclick="load('health')"><span class="method GET">GET</span>/health</button>
+  </div>
+  <div class="main">
+    <div class="card">
+      <h2>🔐 התחברות</h2>
+      <div class="info-box">בחר משתמש ולחץ "קבל טוקן". הטוקן יצורף אוטומטית לכל הבקשות.
+        <div class="demo-grid">
+          <div class="demo-user"><strong>עמית ברק (Admin)</strong><code>admin@demo.com</code></div>
+          <div class="demo-user"><strong>ישראל ישראלי</strong><code>israel@demo.com</code></div>
+          <div class="demo-user"><strong>דנה כהן</strong><code>dana@demo.com</code></div>
+          <div class="demo-user"><strong>יוסי גולן</strong><code>yosi@demo.com</code></div>
+        </div>
+      </div>
+      <div class="user-btns">
+        <button class="user-btn active" onclick="sel('admin@demo.com',this)">עמית ברק (Admin)</button>
+        <button class="user-btn" onclick="sel('israel@demo.com',this)">ישראל ישראלי</button>
+        <button class="user-btn" onclick="sel('dana@demo.com',this)">דנה כהן</button>
+        <button class="user-btn" onclick="sel('yosi@demo.com',this)">יוסי גולן</button>
+        <button class="user-btn" onclick="sel('rachel@demo.com',this)">רחל אברהם</button>
+      </div>
+      <button class="send-btn" onclick="getToken()">קבל טוקן ←</button>
+      <div class="token-box" id="tok-display">לא מחובר</div>
+    </div>
+    <div class="card">
+      <div class="url-bar">
+        <span class="method-badge GET" id="mbadge">GET</span>
+        <input type="text" id="url-input" value="/health" />
+        <button class="send-btn" id="sbtn" onclick="send()">שלח ←</button>
+      </div>
+      <div id="body-wrap" style="display:none;margin-bottom:10px">
+        <div class="body-label">Request Body (JSON)</div>
+        <textarea id="req-body"></textarea>
+      </div>
+      <div class="status-row" id="srow" style="display:none">
+        <span id="sbadge" class="status-badge"></span>
+        <span id="stime" style="font-size:11px;color:#888"></span>
+      </div>
+      <div class="response-box" id="rbox" style="color:#9ca3af">לחץ "שלח" כדי לראות תשובה</div>
+    </div>
+  </div>
+</div>
+<script>
+let token='', user='admin@demo.com', method='GET';
+const EP = {
+  login:        { m:'POST',   u:'/api/auth/login',              b:{email:'admin@demo.com'} },
+  getMe:        { m:'GET',    u:'/api/employees/me' },
+  getMyProjects:{ m:'GET',    u:'/api/employees/me/projects' },
+  createProject:{ m:'POST',   u:'/api/employees/me/projects',   b:{project_name:'פרויקט דמו',domain:'תשתיות',client_name:'עיריית תל-אביב',client_type:'ציבורי',financial_scope:50000000,description:'תיאור פרויקט לדוגמה',employee_services:['פיקוח'],employee_service_start:'2023-06'} },
+  deleteProject:{ m:'DELETE', u:'/api/employees/me/projects/1' },
+  listWaxman:   { m:'GET',    u:'/api/waxman-projects' },
+  getWaxman:    { m:'GET',    u:'/api/waxman-projects/WX-001' },
+  stats:        { m:'GET',    u:'/api/admin/stats' },
+  listEmps:     { m:'GET',    u:'/api/admin/employees' },
+  filterEmps:   { m:'GET',    u:'/api/admin/employees?domain=תשתיות&is_licensed_engineer=true' },
+  getEmp:       { m:'GET',    u:'/api/admin/employees/1' },
+  sendForms:    { m:'POST',   u:'/api/admin/forms/send',        b:{scope:'all'} },
+  export:       { m:'GET',    u:'/api/admin/export' },
+  health:       { m:'GET',    u:'/health' },
+};
+function sel(email,btn){ user=email; document.querySelectorAll('.user-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+async function getToken(){
+  const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user})});
+  const d=await r.json();
+  if(d.token){ token=d.token; document.getElementById('tok-display').textContent=d.token; document.getElementById('tok-display').style.color='#3B6D11'; showResp(200,d,0); }
+  else showResp(r.status,d,0);
+}
+function load(key){
+  const ep=EP[key]; if(!ep) return;
+  document.querySelectorAll('.endpoint-btn').forEach(b=>b.classList.remove('active'));
+  event.target.closest('.endpoint-btn').classList.add('active');
+  method=ep.m;
+  document.getElementById('url-input').value=ep.u;
+  const mb=document.getElementById('mbadge'); mb.textContent=ep.m; mb.className='method-badge '+ep.m;
+  const bw=document.getElementById('body-wrap');
+  if(ep.b){ bw.style.display='block'; document.getElementById('req-body').value=JSON.stringify(ep.b,null,2); }
+  else bw.style.display='none';
+  document.getElementById('srow').style.display='none';
+  document.getElementById('rbox').textContent='לחץ "שלח" כדי לראות תשובה';
+  document.getElementById('rbox').style.color='#9ca3af';
+}
+async function send(){
+  const url=document.getElementById('url-input').value;
+  const btn=document.getElementById('sbtn'); btn.disabled=true; btn.textContent='...';
+  const headers={'Content-Type':'application/json'};
+  if(token) headers['Authorization']='Bearer '+token;
+  const t0=Date.now();
+  try{
+    if(url.includes('/export')){
+      const r=await fetch(url,{method,headers});
+      const blob=await r.blob();
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='muchsharim.xlsx'; a.click();
+      showResp(r.status,{message:'קובץ Excel הורד בהצלחה'},Date.now()-t0);
+    } else {
+      const body=['POST','PUT','PATCH'].includes(method)?document.getElementById('req-body').value:undefined;
+      const r=await fetch(url,{method,headers,body});
+      const d=await r.json();
+      showResp(r.status,d,Date.now()-t0);
+    }
+  }catch(e){ showResp(0,{error:e.message},Date.now()-t0); }
+  btn.disabled=false; btn.textContent='שלח ←';
+}
+function showResp(status,data,ms){
+  document.getElementById('srow').style.display='flex';
+  const ok=status>=200&&status<300;
+  const b=document.getElementById('sbadge');
+  b.textContent=status||'Error'; b.style.background=ok?'#EAF3DE':'#FCEBEB'; b.style.color=ok?'#3B6D11':'#A32D2D';
+  document.getElementById('stime').textContent=ms?ms+'ms':'';
+  const box=document.getElementById('rbox');
+  box.textContent=JSON.stringify(data,null,2);
+  box.style.color=ok?'#5CDB95':'#FC5185';
+}
+window.addEventListener('load',()=>getToken());
+</script>
+</body>
+</html>
